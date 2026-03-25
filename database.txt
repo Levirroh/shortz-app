@@ -1,3 +1,0 @@
-CREATE DATABASE shortz_db_3a;
-
-USE shortz_db_3a;

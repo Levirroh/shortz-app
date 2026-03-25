@@ -1,11 +1,8 @@
-// config/database.js
-
 const { Sequelize } = require('sequelize');
-
 require('dotenv').config();
 
 const sequelize = new Sequelize(
-    process.env.DB_NAME, 
+    process.env.DB_NAME,
     process.env.DB_USER,
     process.env.DB_PASSWORD,
     {
@@ -13,13 +10,11 @@ const sequelize = new Sequelize(
         port: process.env.DB_PORT,
         dialect: 'mysql',
         logging: false,
-        define: {
+        define: {   
             timestamps: true,
-            underscored: true,
+            underscored: true
         }
     }
 );
-
-
 
 module.exports = sequelize;
