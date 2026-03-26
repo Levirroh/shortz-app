@@ -5,9 +5,10 @@ const authMiddleware = require('../middlewares/auth');
 const upload = require('../middlewares/multer');
 
 // Rota para a página inicial 
-router.get('/', function (req, res, next) {
-   res.render('index', { title: 'Vídeos Curtos e Engajadores' });
+router.get("/", function (req, res, next) {
+   res.render("landing", { title: "Vídeos Curtos e Engajadores" });
 });
+
 
 // Rota para exibir o formulário de cadastro
 router.get('/register', (req, res) => {
@@ -30,14 +31,14 @@ router.get('/logout', userController.logout);
 
 // Rota para exibir o feed de vídeos (protegida por autenticação)
 router.get('/feed', authMiddleware, async (req, res) => {
-    const user = await userController.getProfile(req.session.user.id);
-    res.render('home', { user });
+   const user = await userController.getProfile(req.session.user.id);
+   res.render('home', { user });
 });
 
 // Rota para exibir o perfil do usuário (protegida por autenticação)
 router.get('/profile/edit', authMiddleware, async (req, res) => {
-    const user = await userController.getProfile(req.session.user.id);
-    res.render('edit-profile', { user });
+   const user = await userController.getProfile(req.session.user.id);
+   res.render('edit-profile', { user });
 });
 
 // Rota de atualização (Protegida + Upload de 1 arquivo chamado 'profilePicture')

@@ -1,5 +1,7 @@
 const User = require('./userModel');
 const bcrypt = require('bcryptjs');
+const fs = require("fs");
+const path = require("path");
 
 exports.register = async (req, res) => {
     const { username, email, password, confirmPassword, fullName } = req.body;
@@ -42,44 +44,44 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-   try {
-      const { login, password } = req.body; // login pode ser email ou username
+    try {
+        const { login, password } = req.body; // login pode ser email ou username
 
-      // 1. Buscar usuário por email OU username
-      const user = await User.findOne({
-         where: {
-            [require('sequelize').Op.or]: [{ email: login }, { username: login }]
-         }
-      });
+        // 1. Buscar usuário por email OU username
+        const user = await User.findOne({
+            where: {
+                [require('sequelize').Op.or]: [{ email: login }, { username: login }]
+            }
+        });
 
-      // 2. Verificar se usuário existe e se a senha bate
-      if (!user || !(await bcrypt.compare(password, user.password))) {
-         req.flash('error', 'E-mail/Usuário ou senha incorretos.');
-         return res.redirect('/login');
-      }
+        // 2. Verificar se usuário existe e se a senha bate
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+            req.flash('error', 'E-mail/Usuário ou senha incorretos.');
+            return res.redirect('/login');
+        }
 
-      // 3. Criar a sessão do usuário
-      req.session.user = {
-         id: user.id,
-         username: user.username,
-         email: user.email
-      };
+        // 3. Criar a sessão do usuário
+        req.session.user = {
+            id: user.id,
+            username: user.username,
+            email: user.email
+        };
 
-      // 4. Redirecionar para o feed
-      res.redirect('/feed');
+        // 4. Redirecionar para o feed
+        res.redirect('/feed');
 
-   } catch (error) {
-      console.error(error);
-      req.flash('error', 'Ocorreu um erro ao tentar entrar.');
-      res.redirect('/login');
-   }
+    } catch (error) {
+        console.error(error);
+        req.flash('error', 'Ocorreu um erro ao tentar entrar.');
+        res.redirect('/login');
+    }
 };
 
 
 exports.logout = (req, res) => {
-   req.session.destroy(() => {
-      res.redirect('/');
-   });
+    req.session.destroy(() => {
+        res.redirect('/');
+    });
 };
 
 exports.getProfile = async (userId) => {
@@ -98,22 +100,29 @@ exports.updateProfile = async (req, res) => {
     try {
         const { fullName, bio } = req.body;
         const userId = req.session.user.id;
-
         const updateData = { fullName, bio };
 
-        // Se um arquivo foi enviado pelo Multer, ele estará em req.file
         if (req.file) {
             updateData.profilePicture = req.file.filename;
         }
 
+        const oldUser = await User.findByPk(userId);
+
         await User.update(updateData, { where: { id: userId } });
 
-        req.flash('success', 'Perfil atualizado com sucesso!');
-        res.redirect('/profile/edit');
-
+        if (req.file && oldUser.profilePicture && oldUser.profilePicture !== 'default-profile.png') {
+            const oldProfilePicPath = path.join(__dirname, '../../public/uploads/profiles', oldUser.profilePicture);
+            fs.unlink(oldProfilePicPath, (err) => {
+                if (err) console.error('Erro ao apagar foto de perfil antiga:', err);
+                else console.log('Foto de perfil antiga apagada:', oldProfilePicPath);
+            });
+        }
+        
+        req.flash("success", "Perfil atualizado com sucesso!");
+        res.redirect("/profile/edit");
     } catch (error) {
         console.error(error);
-        req.flash('error', 'Erro ao atualizar perfil.');
-        res.redirect('/profile/edit');
+        req.flash("error", "Erro ao atualizar perfil.");
+        res.redirect("/profile/edit");
     }
 };
