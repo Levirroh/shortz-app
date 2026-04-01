@@ -9,7 +9,9 @@ const flash = require('connect-flash');
 var indexRouter = require('./routes/index.js');
 var usersRouter = require('./routes/users');
 var userRoutes = require("./modules/user/userRoutes");
- 
+ var videoRoutes = require("./modules/video/videoRoutes");
+
+
 var expressLayouts = require("express-ejs-layouts");
  
 var app = express();
@@ -40,6 +42,7 @@ app.use(express.static(path.join(__dirname, 'public')));
  
 app.use('/', indexRouter);
 app.use("/", userRoutes); // Usa as rotas de usuário descentralizadas
+app.use("/", videoRoutes);
 // app.use('/users', usersRouter); // Removido, pois as rotas de usuário foram movidas
  
 // catch 404 and forward to error handler
@@ -61,8 +64,8 @@ app.use(function(err, req, res, next) {
 // Tenta conectar com o banco de dados
  
 const sequelize = require('./config/database')
-const user = require('./modules/user/userModel')
- 
+const User = require('./modules/user/userModel')
+ const Video = require("./modules/video/videoModel"); 
 /* sequelize.authenticate()
   .then( () => console.log("Conexão ok"))
   .catch(erro => console.error('Erro na conexão:', erro)); */
