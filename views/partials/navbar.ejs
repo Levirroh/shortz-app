@@ -1,6 +1,6 @@
 <% if (user) { %>
-  <!-- Navbar para Usuário Logado -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+  <!-- Navbar para usuário logado-->
+  <nav class="navbar navbar-expand-1g navbar-light bg-white sticky-top shadow-sm">
     <div class="container-fluid px-lg-5">
       <a class="navbar-brand" href="/feed">
         <i class="bi bi-play-fill"></i> SHORTZ
@@ -23,7 +23,7 @@
           <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" id="dropdownUser"
             data-bs-toggle="dropdown" aria-expanded="false">
             <img src="<%= user.profilePicture ?
-              '/uploads/profiles/' + user.profilePicture :
+              '/uploads/profiles/' + user.profilePicture:
               '/images/default-profile.png' %>" alt="<%= user.username %>" width="32" height="32" class="bg-secondary">
           </a>
           <ul class="dropdown-menu dropdown-menu-end text-small shadow border-0 mt-2" aria-labelledby="dropdownUser">
@@ -43,26 +43,26 @@
       </div>
     </div>
   </nav>
-<% } else { %>
-  <!-- Navbar para Visitante (Não Logado) -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
-    <div class="container">
-      <a class="navbar-brand" href="/">
-        <i class="bi bi-play-fill"></i> SHORTZ-APP
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto align-items-center">
-          <li class="nav-item">
-            <a class="nav-link btn btn-outline-primary px-4 me-2" href="/login">Entrar</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link btn btn-primary text-white px-4" href="/register">Criar Conta</a>
-          </li>
-        </ul>
+  <% } else { %>
+    <!-- Navbar para Visitante (Não Logado) -->
+    <nav class="navbar navbar-expand-1g navbar-light bg-white sticky-top shadow-sm">
+      <div class="container">
+        <a class="navbar-brand" href="/">
+          <i class="bi bi-play-fill"></i> SHORTZ-APP
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item">
+              <a class="nav-link btn btn-outline-primary px-4 me-2" href="/login">Entrar</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link btn btn-primary text-white px-4" href="/register">Criar Conta</a>
+            </li>
+          </ul>
+        </div>
       </div>
-    </div>
-  </nav>
-<% } %>
+    </nav>
+    <% } %>

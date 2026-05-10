@@ -1,6 +1,7 @@
 const multer = require('multer');
 const path = require('path');
 
+
 // Configuração de onde e como salvar os arquivos
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -13,6 +14,7 @@ const storage = multer.diskStorage({
     }
 });
 
+
 // Filtro para aceitar apenas imagens
 const fileFilter = (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
@@ -22,10 +24,12 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
+
 const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
     limits: { fileSize: 4 * 1024 * 1024 } // Limite de 4MB (conforme RN-003)
 });
+
 
 module.exports = upload;
