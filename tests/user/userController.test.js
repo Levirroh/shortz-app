@@ -1,4 +1,4 @@
-const { describe, it, expect } = require("vitest");
+import { describe, it, expect, vitest } from "vitest";
 
 describe("Register", () => {
   const password = "myPassword";

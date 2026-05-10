@@ -15,6 +15,6 @@ describe("Video Model", () => {
       duration: 30
     })
 
-    expect(video.title).toBe("My video")
+    expect(video.title).toBe("My Video")
   });
 });
