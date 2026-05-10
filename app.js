@@ -53,14 +53,18 @@ app.use(function(req, res, next) {
 
 // error handler
 app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
+  // Define variáveis básicas para o layout não quebrar
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
+  
+  // GARANTIA: Define user e messages caso o erro tenha ocorrido antes do middleware global
+  res.locals.user = req.session ? req.session.user : null;
+  res.locals.messages = { error: [], success: [] }; 
 
-  // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.render('error'); 
 });
+
 
 const sequelize = require('./configuration/database');
 // Sincroniza os modelos com o banco de dados
