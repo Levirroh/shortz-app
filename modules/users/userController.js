@@ -3,6 +3,7 @@ const Video = require('../video/videoModel');
 const bcrypt = require('bcryptjs');
 const fs = require("fs");
 const path = require("path");
+const { error } = require('console');
 
 exports.register = async (req, res) => {
 	const { username, email, password, confirmPassword, fullName } = req.body;
@@ -96,6 +97,18 @@ exports.getProfile = async (userId) => {
 	}
 };
 
+exports.findByUsername = async (username) => {
+	try {
+		return await User.findOne({
+			where: { username: username },
+			attributes: ['id', 'username', 'email', 'fullName', 'bio', 'profilePicture']
+		});
+	} catch (error) {
+		console.error(error);
+		throw new Error('Erro ao buscar perfil do usuário.');
+	}
+};
+
 exports.updateProfile = async (req, res) => {
 	try {
 		const { fullName, bio } = req.body;
@@ -120,13 +133,14 @@ exports.updateProfile = async (req, res) => {
 			});
 		}
 
-		req.flash("success", "Perfil atualizado com sucesso.");
-		res.redirect('/profile/edit');
 
-	} catch {
-		console.error(error)
+		req.flash("success", "Perfil atualizado com sucesso.");
+		// res.redirect('/profile/edit');
+
+	} catch (error) {
+		console.error(error);
 		req.flash('error', 'Erro ao atualizar perfil.');
-		res.redirect('/profile/edit');
+		// res.redirect('/profile/edit');
 	}
 };
 
