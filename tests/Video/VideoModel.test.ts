@@ -1,9 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import * as videoController from "../../modules/video/videoController";
 import * as userController from "../../modules/users/userController";
 import * as fs from 'fs';
 import path from "path";
-import User from "../../modules/users/userModel";
+import Video from "../../modules/video/videoModel";
 
 vi.mock("sequelize", () => ({
   DataTypes: {},
@@ -52,5 +51,14 @@ describe("VideoModel", () => {
   it("user should be valid", async () => {
     const user = await userController.getProfile(req.body.userId);
     expect(user).not.toBeFalsy();
+  });
+
+  it("should be able to create a video", async () => {
+    const video = Video.create({
+      title: req.body.title,
+      description: req.body.description,
+    });
+    expect(video).not.toBeFalsy();
+    expect(video?.title).toBe("primeiro vídeo");
   });
 });

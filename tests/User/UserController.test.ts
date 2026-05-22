@@ -10,49 +10,49 @@ vi.mock("../../config/database", () => ({
   default: {},
 }));
 
-
 describe("UserController", () => {
-  var userCreatedId: number;  
+  var req: any;
 
-  const user = {
-    body: {
-      username: "JoGoRu",
-      email: "johann.ruth@gmail.com",
-      password: "senha1234",
-      confirmPassword: "senha1234",
-      fullName: "Johann Gossen Ruth",
-    },
-    session: {
+  beforeEach(() => {
+    req = {
+      body: {
+        username: "teste",
+        password: "password123",
+        confirmPassword: "password123",
+        email: "teste@teste.com",
+        fullName: "Teste User"
+      },
+      session: {
         user: { id: 1 }
-    },
-    flash: vi.fn() 
-  };
-  const res = {
-    status: vi.fn().mockReturnThis(),
-    json: vi.fn(),
-    redirect: vi.fn(),
-  };
+      },
+      flash: vi.fn() 
+    };
+  });
   
-  it("should create a valid user", async () => {
-
-
+    it("should register a new user", async () => {
+      const newUser = await userController.register(req);
+      expect(newUser).not.toBeFalsy();
+      expect(newUser?.username).toBe("teste");
+    });
+  
+  it("should get user by username", async () => {
+    const user = await userController.findByUsername("teste");
     expect(user).not.toBeFalsy();
-
-    const createdUser = await userController.register(user, res);
-    const userCreated = await userController.findByUsername(user.body.username);
-    userCreatedId = userCreated?.id;
-    expect(userCreated).not.toBeFalsy();
+    expect(user?.username).toBe("teste");
   });
 
-  it("should update the created user", async () => {
+  it("should login user", async () => {
+    const user = await userController.login(req);
+    expect(user).not.toBeFalsy();
+    expect(user?.username).toBe("teste");
+  });
+
+  it("should update user profile", async () => {
+    req.body.username = "Teste UPDATE";
     
-    user.body.fullName = "Johann Gossen Ruth Updated";
-
-    await userController.updateProfile(user, res);
-
-    const afterUpdateUser = await userController.findByUsername(user.body.username);
-
-    expect(afterUpdateUser?.fullName).toBe(user.body.fullName);
-  })
+    const updatedUser = await userController.updateProfile(req);
+    expect(updatedUser).not.toBeFalsy();
+    expect(updatedUser?.username).toBe("Teste UPDATE");
+  }
 
 });
