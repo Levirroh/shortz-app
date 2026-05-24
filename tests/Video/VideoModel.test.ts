@@ -54,11 +54,15 @@ describe("VideoModel", () => {
   });
 
   it("should be able to create a video", async () => {
-    const video = Video.create({
+    const video = await Video.create({
       title: req.body.title,
       description: req.body.description,
+      videoPath: req.body.videoPath,
+      thumbnailPath: req.body.thumbnailPath,
+      userId: req.body.userId,
+      duration: req.body.duration
     });
     expect(video).not.toBeFalsy();
-    expect(video?.title).toBe("primeiro vídeo");
+    expect(video.title).toBe("primeiro vídeo");
   });
 });

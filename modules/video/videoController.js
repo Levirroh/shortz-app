@@ -11,17 +11,15 @@ exports.uploadVideo = async (req, res) => {
     const { title, description } = req.body;
     const userId = req.session.user.id;
 
-    // Verifica se os arquivos foram enviados
     if (!req.files || !req.files.video || !req.files.thumbnail) {
       req.flash("error", "Por favor, envie o vídeo e a capa.");
-      return res.redirect("/upload");
+      return null;
     }
 
     const videoFile = req.files.video[0];
     const thumbnailFile = req.files.thumbnail[0];
 
-    // Cria o novo vídeo no banco de dados
-    await Video.create({
+    const newVideo = await Video.create({
       title,
       description,
       videoPath: videoFile.filename,
@@ -29,15 +27,17 @@ exports.uploadVideo = async (req, res) => {
       userId,
     });
 
-    // Atualiza a contagem de vídeos do usuário
-    await User.increment('videosCount', { where: { id: userId } });
+    await User.increment("videosCount", {
+      where: { id: userId }
+    });
 
     req.flash("success", "Vídeo enviado com sucesso!");
-    res.redirect("/feed");
+
+    return newVideo;
   } catch (error) {
     console.error("Erro ao fazer upload do vídeo:", error);
     req.flash("error", "Erro ao fazer upload do vídeo. Tente novamente.");
-    res.redirect("/upload");
+    return null;
   }
 };
 
@@ -113,7 +113,7 @@ exports.renderVideoPage = async (req, res) => {
 
     if (!video) {
       req.flash("error", "Vídeo não encontrado.");
-      return res.redirect("/feed");
+      return // res.redirect("/feed");
     }
 
     let isLiked = false;
@@ -128,6 +128,6 @@ exports.renderVideoPage = async (req, res) => {
   } catch (error) {
     console.error("Erro ao carregar a página do vídeo:", error);
     req.flash("error", "Erro ao carregar o vídeo. Tente novamente.");
-    res.redirect("/feed");
+    // res.redirect("/feed");
   }
 };

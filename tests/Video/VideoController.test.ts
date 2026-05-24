@@ -1,18 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+require("../../configuration/associations");
 import * as videoController from "../../modules/video/videoController";
-
-vi.mock("sequelize", () => ({
-  DataTypes: {},
-  literal: vi.fn(), 
-}));
-
-vi.mock("../../config/database", () => ({
-  default: {},
-}));
 
 describe("VideoController", () => {
   var req: any;
   var videoId: number;
+  let res: any;
 
   beforeEach(() => {
     req = {
@@ -33,6 +26,11 @@ describe("VideoController", () => {
       },
       flash: vi.fn() 
     };
+    res = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn().mockReturnThis(),
+      redirect: vi.fn().mockReturnThis()
+    };
   });
 
   it("should get all videos", async () => {
@@ -41,7 +39,7 @@ describe("VideoController", () => {
   });
 
   it("video should be uploaded", async () => {
-    const newVideo = await videoController.uploadVideo(req);
+    const newVideo = await videoController.uploadVideo(req, res);
     expect(newVideo).not.toBeFalsy();
   });
 });

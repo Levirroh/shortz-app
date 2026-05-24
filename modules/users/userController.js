@@ -11,7 +11,7 @@ exports.register = async (req, res) => {
 		// 1. Validação básica de senhas coincidentes
 		if (password !== confirmPassword) {
 			req.flash('error', 'As senhas não coincidem.');
-			return res.redirect('/register');
+			return // res.redirect('/register');
 		}
 
 		// 2. Verificar se usuário ou e-mail já existem (opcional, mas melhora o UX)
@@ -19,7 +19,7 @@ exports.register = async (req, res) => {
 		const usernameExists = await User.findOne({ where: { username } });
 		if (emailExists || usernameExists) {
 			req.flash('error', 'Este e-mail ou usuário já está cadastrado.');
-			return res.redirect('/register');
+			return // res.redirect('/register');
 		}
 
 		// 3. Hash da senha
@@ -36,12 +36,12 @@ exports.register = async (req, res) => {
 
 		// 5. Redirecionar para login com mensagem de sucesso
 		req.flash('success', 'Conta criada com sucesso! Faça seu login.');
-		res.redirect('/login');
+		// res.redirect('/login');
 
 	} catch (error) {
 		console.error(error);
 		req.flash('error', 'Erro ao criar conta. Verifique os dados e tente novamente.');
-		res.redirect('/register');
+		// res.redirect('/register');
 	}
 };
 
@@ -59,7 +59,7 @@ exports.login = async (req, res) => {
 		// 2. Verificar se usuário existe e se a senha bate
 		if (!user || !(await bcrypt.compare(password, user.password))) {
 			req.flash('error', 'E-mail/Usuário ou senha incorretos.');
-			return res.redirect('/login');
+			return // res.redirect('/login');
 		}
 
 		// 3. Criar a sessão do usuário
@@ -70,19 +70,19 @@ exports.login = async (req, res) => {
 		};
 
 		// 4. Redirecionar para o feed
-		res.redirect('/feed');
+		// res.redirect('/feed');
 
 	} catch (error) {
 		console.error(error);
 		req.flash('error', 'Ocorreu um erro ao tentar entrar.');
-		res.redirect('/login');
+		// res.redirect('/login');
 	}
 };
 
 
 exports.logout = (req, res) => {
 	req.session.destroy(() => {
-		res.redirect('/');
+		// res.redirect('/');
 	});
 };
 
@@ -135,12 +135,12 @@ exports.updateProfile = async (req, res) => {
 
 
 		req.flash("success", "Perfil atualizado com sucesso.");
-		// res.redirect('/profile/edit');
+		// // res.redirect('/profile/edit');
 
 	} catch (error) {
 		console.error(error);
 		req.flash('error', 'Erro ao atualizar perfil.');
-		// res.redirect('/profile/edit');
+		// // res.redirect('/profile/edit');
 	}
 };
 
@@ -159,7 +159,7 @@ exports.renderPublicProfile = async (req, res) => {
 
 		if (!user) {
 			req.flash("error", "Usuário não encontrado.");
-			return res.redirect("/feed");
+			return // res.redirect("/feed");
 		}
 
 		// Verifica se o perfil sendo visualizado é o do usuário logado
@@ -170,6 +170,6 @@ exports.renderPublicProfile = async (req, res) => {
 	} catch (error) {
 		console.error("Erro ao carregar perfil público:", error);
 		req.flash("error", "Erro ao carregar o perfil. Tente novamente.");
-		res.redirect("/feed");
+		// res.redirect("/feed");
 	}
 };

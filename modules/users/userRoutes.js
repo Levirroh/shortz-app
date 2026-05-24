@@ -37,7 +37,7 @@ router.get("/profile/edit", authMiddleware, async (req, res) => {
 //   } catch (error) {
 //     console.error("Erro ao carregar o feed:", error);
 //     req.flash("error", "Erro ao carregar o feed de vídeos.");
-//     res.redirect("/login"); // Redireciona para login em caso de erro
+//     // res.redirect("/login"); // Redireciona para login em caso de erro
 //   }
 // });
 // Rota de atualização (Protegida + Upload de 1 arquivo chamado 'profilePicture')

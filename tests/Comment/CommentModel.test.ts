@@ -1,59 +1,50 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
+import sequelize from "../../configuration/database";
 import Comment from "../../modules/comment/commentModel";
 
-
-
-vi.mock("sequelize", () => ({
-  DataTypes: {},
-  literal: vi.fn(),
-}));
-
-vi.mock("../../config/database", () => ({
-  default: {},
-}));
-
-
 describe("CommentModel", () => {
-  var req: any;
-
-  beforeEach(() => {
-    req = {
-      body: {
-        title: "adorei o vídeo",
-        userId: 1,
-        videoId: 1,
-      }
-    };
+  beforeEach(async () => {
+    await sequelize.sync({ force: true });
   });
 
   it("should create a new comment", async () => {
     const comment = await Comment.create({
-      title: req.body.title,
-      userId: req.body.userId,
-      videoId: req.body.videoId
+      content: "adorei o vídeo",
+      userId: 1,
+      videoId: 1
     });
+
     expect(comment).not.toBeFalsy();
-    expect(comment?.title).toBe("adorei o vídeo");
-    expect(comment?.userId).toBe(1);
-    expect(comment?.videoId).toBe(1);
+    expect(comment.content).toBe("adorei o vídeo");
+    expect(comment.userId).toBe(1);
+    expect(comment.videoId).toBe(1);
   });
 
   it("should be able to update a comment", async () => {
-    
-    const comment = await Comment.update({
-      title: req.body.title,
-      userId: req.body.userId,
-      videoId: req.body.videoId
-    }, { where: { userId: req.body.userId, videoId: req.body.videoId, title: req.body.title } });
+    const comment = await Comment.create({
+      content: "adorei o vídeo",
+      userId: 1,
+      videoId: 1
+    });
 
-    expect(comment).not.toBeFalsy();
+    await comment.update({
+      content: "comentário editado"
+    });
+
+    expect(comment.content).toBe("comentário editado");
   });
 
   it("should be able to delete a comment", async () => {
-    const comment = await Comment.delete({ where: { id: 1 } });
-    expect(comment).not.toBeFalsy();
-    const deletedComment = await Comment.findOne({ where: { userId: req.body.userId, videoId: req.body.videoId, title: req.body.title } });
-    expect(deletedComment).toBeFalsy();
-  });
+    const comment = await Comment.create({
+      content: "adorei o vídeo",
+      userId: 1,
+      videoId: 1
+    });
 
+    await comment.destroy();
+
+    const deletedComment = await Comment.findByPk(comment.id);
+
+    expect(deletedComment).toBeNull();
+  });
 });

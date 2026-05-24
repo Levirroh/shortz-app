@@ -1,69 +1,77 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import User from "../../modules/users/userModel";
-const bcrypt = require('bcryptjs');
+const bcrypt = require("bcryptjs");
 
-vi.mock("sequelize", () => ({
-  DataTypes: {},
-  literal: vi.fn(),
-}));
+describe("UserModel", () => {
 
-vi.mock("../../config/database", () => ({
-  default: {},
-}));
+  var createdUser: any;
 
-
-describe("UserController", () => {
-  var userCreatedId: number;
-
-  const req = {
-    body: {
-      username: "JoGoRu",
-      email: "johann.ruth@gmail.com",
-      password: "senha1234",
-      confirmPassword: "senha1234",
-      fullName: "Johann Gossen Ruth",
-    }
+  const userData = {
+    username: "JoGoRu",
+    email: "johann.ruth@gmail.com",
+    password: "senha1234",
+    fullName: "Johann Gossen Ruth",
   };
 
   it("should create a valid user", async () => {
-    expect(req).not.toBeFalsy();
 
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(req.body.password, salt);
+    const hashedPassword = await bcrypt.hash(userData.password, salt);
 
-    const createdUser = User.create({
-      username: req.body.username,
-      email: req.body.email,
-      password: hashedPassword,
-      fullName: req.body.fullName,
-    })
+    const [user, created] = await User.findOrCreate({
+      where: {
+        username: userData.username
+      },
+      defaults: {
+        email: userData.email,
+        password: hashedPassword,
+        fullName: userData.fullName,
+      }
+    });
+
+    createdUser = user.dataValues;
+
     expect(createdUser).not.toBeFalsy();
+    expect(createdUser.username).toBe(userData.username);
   });
 
   it("should find the created user", async () => {
-    const user = await User.findOne({ where: { username: req.body.username } });
-    expect(user).not.toBeFalsy();
 
-    expect(user?.username).toBe(req.body.username);
-    userCreatedId = user?.id || 0;
-  })
+    const user = await User.findByPk(createdUser.id);
+
+    expect(user).not.toBeFalsy();
+    expect(user?.username).toBe(userData.username);
+  });
 
   it("should update the user", async () => {
-    req.body.fullName = "Johann Gossen Ruth Atualizado";
 
-    const updatedUser = await User.update(
-      { fullName: req.body.fullName },
-      { where: { id: userCreatedId } }
+    await User.update(
+      {
+        fullName: "Johann Gossen Ruth Atualizado"
+      },
+      {
+        where: { id: createdUser.id }
+      }
     );
+
+    const updatedUser = await User.findByPk(createdUser.id);
+
     expect(updatedUser).not.toBeFalsy();
-    expect(updatedUser?.username).toBe("Johann Gossen Ruth Atualizado");
+    expect(updatedUser?.fullName)
+      .toBe("Johann Gossen Ruth Atualizado");
   });
 
   it("should delete the user", async () => {
-    const deletedUser = await User.destroy({ where: { id: userCreatedId } });
-    expect(deletedUser).not.toBeFalsy();
 
-    const user = await User.findOne({ where: { username: req.body.username } });
-    expect(user).toBeFalsy();
+    const deletedCount = await User.destroy({
+      where: { id: createdUser.id }
+    });
+
+    expect(deletedCount).toBe(1);
+
+    const deletedUser = await User.findByPk(createdUser.id);
+
+    expect(deletedUser).toBeNull();
   });
+
 });
