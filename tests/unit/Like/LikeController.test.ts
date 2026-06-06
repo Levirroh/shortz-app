@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 require("../../configuration/associations");
-import * as likeController from "../../modules/like/likeController";
+import * as likeController from "../../../modules/like/likeController";
 
 describe("LikeController", () => {
   let req: any;

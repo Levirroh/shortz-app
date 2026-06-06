@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import * as userController from "../../modules/users/userController";
+import * as userController from "../../../modules/users/userController";
 import * as fs from 'fs';
 import path from "path";
-import Video from "../../modules/video/videoModel";
+import Video from "../../../modules/video/videoModel";
 
 vi.mock("sequelize", () => ({
   DataTypes: {},

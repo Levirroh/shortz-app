@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 require("../../configuration/associations");
-import * as userController from "../../modules/users/userController";
+import * as userController from "../../../modules/users/userController";
 
 describe("UserController", () => {
   var req: any;

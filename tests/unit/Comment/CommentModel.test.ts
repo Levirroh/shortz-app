@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import sequelize from "../../configuration/database";
-import Comment from "../../modules/comment/commentModel";
+import sequelize from "../../../configuration/database";
+import Comment from "../../../modules/comment/commentModel";
 
 describe("CommentModel", () => {
   beforeEach(async () => {
