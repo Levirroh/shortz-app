@@ -23,7 +23,7 @@ import {
   countVideoLikes,
 } from './helpers/reaction.helper';
 
-describe('Shortz-App - Testes E2E com Vitest + Supertest', () => {
+describe('Shortz-App - Testes de Integração com Vitest + Supertest', () => {
   let db: ShortzDatabase;
   let app: Express;
 
