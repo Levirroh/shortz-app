@@ -3,5 +3,5 @@ module.exports = (req, res, next) => {
         return next(); // Está logado, pode seguir
     }
     req.flash('error', 'Você precisa estar logado para acessar esta página.');
-    // res.redirect('/login');
+    res.redirect('/login');
 };

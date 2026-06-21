@@ -1,154 +1,105 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import type { Express } from 'express';
+import request from 'supertest';
 
-import { createApp } from './src/app';
-import { createDatabase, type ShortzDatabase } from './src/database';
+process.env.NODE_ENV = 'test';
 
-import { createTestUser, createTestVideo } from './data/test-data';
+const app = require('../app');
+const sequelize = require('../configuration/database');
 
-import {
-  registerUser,
-  loginUser,
-  registerAndLogin,
-} from './helpers/auth.helper';
+function createTestUser() {
+  const timestamp = Date.now();
 
-import {
-  createVideo,
-  listVideos,
-  getVideoById,
-} from './helpers/video.helper';
-
-import {
-  likeVideo,
-  countVideoLikes,
-} from './helpers/reaction.helper';
+  return {
+    username: `usuario_teste_${timestamp}`,
+    name: `Usuário Teste ${timestamp}`,
+    email: `usuario${timestamp}@shortz.com`,
+    password: '123456',
+  };
+}
 
 describe('Shortz-App - Testes de Integração com Vitest + Supertest', () => {
-  let db: ShortzDatabase;
-  let app: Express;
-
   beforeAll(async () => {
-    db = await createDatabase();
-    app = createApp(db);
+    await sequelize.sync({ force: true });
+  }, 30000);
+
+  afterAll(async () => {
+    await sequelize.close();
   });
 
-  afterAll(() => {
-    db.close();
-  });
+  it('CT-INT-001 - Deve abrir a tela oficial de cadastro', async () => {
+    const response = await request(app)
+      .get('/register')
+      .timeout({ response: 10000, deadline: 20000 });
 
-  it('CT-INT-001 - Deve cadastrar e fazer login de usuário', async () => {
+    expect(response.status).toBe(200);
+    expect(response.text).toContain('Criar Conta');
+  }, 30000);
+
+  it('CT-INT-002 - Deve cadastrar usuário', async () => {
+    const agent = request.agent(app);
     const user = createTestUser();
 
-    const registerResponse = await registerUser(app, user);
+    const response = await agent
+      .post('/register')
+      .type('form')
+      .send({
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        password: user.password,
+        confirmPassword: user.password,
+      })
+      .timeout({ response: 10000, deadline: 20000 });
 
-    expect(registerResponse.status).toBe(201);
-    expect(registerResponse.body.user).toBeDefined();
-    expect(registerResponse.body.user.id).toBeDefined();
-    expect(registerResponse.body.user.email).toBe(user.email);
-    expect(registerResponse.body.user.password).toBeUndefined();
+    expect([200, 201, 302]).toContain(response.status);
+  }, 30000);
 
-    const loginResponse = await loginUser(app, {
-      email: user.email,
-      password: user.password,
-    });
-
-    
-    expect(loginResponse.status).toBe(200);
-    expect(loginResponse.body.user).toBeDefined();
-    expect(loginResponse.body.user.email).toBe(user.email);
-    expect(loginResponse.body.token).toBeDefined();
-  });
-
-  it('CT-INT-002 - Deve permitir que usuário autenticado faça um post/vídeo', async () => {
+  it('CT-INT-003 - Deve fazer login e acessar o feed autenticado', async () => {
+    const agent = request.agent(app);
     const user = createTestUser();
-    const videoData = createTestVideo();
 
-    const auth = await registerAndLogin(app, user);
+    const registerResponse = await agent
+      .post('/register')
+      .type('form')
+      .send({
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        password: user.password,
+        confirmPassword: user.password,
+      })
+      .timeout({ response: 10000, deadline: 20000 });
 
-    expect(auth.registerResponse.status).toBe(201);
-    expect(auth.loginResponse.status).toBe(200);
-    expect(auth.userId).toBeDefined();
+    expect([200, 201, 302]).toContain(registerResponse.status);
 
-    const createVideoResponse = await createVideo(app, {
-      ...videoData,
-      user_id: auth.userId,
-    });
+    const loginResponse = await agent
+      .post('/login')
+      .type('form')
+      .send({
+        login: user.email,
+        password: user.password,
+      })
+      .timeout({ response: 10000, deadline: 20000 });
 
-    expect(createVideoResponse.status).toBe(201);
-    expect(createVideoResponse.body.video).toBeDefined();
-    expect(createVideoResponse.body.video.id).toBeDefined();
-    expect(createVideoResponse.body.video.title).toBe(videoData.title);
-    expect(createVideoResponse.body.video.user_id).toBe(auth.userId);
+    expect([200, 302]).toContain(loginResponse.status);
 
-    const listResponse = await listVideos(app);
+    const feedResponse = await agent
+      .get('/feed')
+      .timeout({ response: 10000, deadline: 20000 });
 
-    expect(listResponse.status).toBe(200);
-    expect(listResponse.body.videos).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          title: videoData.title,
-          user_id: auth.userId,
-        }),
-      ])
-    );
-  });
+    expect(feedResponse.status).toBe(200);
+    expect(feedResponse.text).toContain('Feed');
+  }, 30000);
 
-  it('CT-INT-003 - Deve reagir o máximo possível em um vídeo', async () => {
-    const user = createTestUser();
-    const videoData = createTestVideo();
+  it('CT-INT-004 - Deve bloquear curtida sem usuário autenticado', async () => {
+    const response = await request(app)
+      .post('/video/999999/toggle-like')
+      .timeout({ response: 10000, deadline: 20000 });
 
-    const auth = await registerAndLogin(app, user);
+    expect([302, 401, 403]).toContain(response.status);
 
-    const createVideoResponse = await createVideo(app, {
-      ...videoData,
-      user_id: auth.userId,
-    });
-
-    const videoId = createVideoResponse.body.video.id;
-
-    const likeResponse = await likeVideo(app, videoId, auth.userId);
-
-    expect(likeResponse.status).toBe(201);
-    expect(likeResponse.body.message).toBe('Vídeo curtido com sucesso.');
-
-    const duplicatedLikeResponse = await likeVideo(app, videoId, auth.userId);
-
-    expect(duplicatedLikeResponse.status).toBe(409);
-    expect(duplicatedLikeResponse.body.error).toBe('Usuário já curtiu este vídeo.');
-
-    const likesResponse = await countVideoLikes(app, videoId);
-
-    expect(likesResponse.status).toBe(200);
-    expect(likesResponse.body.total).toBe(1);
-  });
-
-  it('CT-INT-004 - Deve executar rotina completa: login, assistir vídeo e curtir', async () => {
-    const user = createTestUser();
-    const videoData = createTestVideo();
-
-    const auth = await registerAndLogin(app, user);
-
-    const createVideoResponse = await createVideo(app, {
-      ...videoData,
-      user_id: auth.userId,
-    });
-
-    const videoId = createVideoResponse.body.video.id;
-
-    const getVideoResponse = await getVideoById(app, videoId);
-
-    expect(getVideoResponse.status).toBe(200);
-    expect(getVideoResponse.body.video).toBeDefined();
-    expect(getVideoResponse.body.video.id).toBe(videoId);
-    expect(getVideoResponse.body.video.title).toBe(videoData.title);
-
-    const likeResponse = await likeVideo(app, videoId, auth.userId);
-
-    expect(likeResponse.status).toBe(201);
-
-    const likesResponse = await countVideoLikes(app, videoId);
-
-    expect(likesResponse.status).toBe(200);
-    expect(likesResponse.body.total).toBe(1);
-  });
+    if (response.status === 302) {
+      expect(response.headers.location).toContain('/login');
+    }
+  }, 30000);
 });

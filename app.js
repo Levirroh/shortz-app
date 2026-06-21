@@ -47,35 +47,35 @@ app.use("/", likeRoutes);
 app.use("/", commentRoutes);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // Define variáveis básicas para o layout não quebrar
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
-  
+
   // GARANTIA: Define user e messages caso o erro tenha ocorrido antes do middleware global
   res.locals.user = req.session ? req.session.user : null;
-  res.locals.messages = { error: [], success: [] }; 
+  res.locals.messages = { error: [], success: [] };
 
   res.status(err.status || 500);
-  res.render('error'); 
+  res.render('error');
 });
 
 
 const sequelize = require('./configuration/database');
 // Sincroniza os modelos com o banco de dados
-sequelize.sync({ alter: true })
-  .then(() => console.log("Banco de dados sincronizado!"))
-  .catch(err => console.error("Erro ao sincronizar banco:", err));
+if (process.env.NODE_ENV !== 'test') {
+  sequelize.sync({ alter: true })
+    .then(() => console.log("Banco de dados sincronizado!"))
+    .catch(err => console.error("Erro ao sincronizar banco:", err));
+}
 
 // sequelize.authenticate()
 //   .then(() => console.log("Database Connection was established."))
 //   .catch((error) => console.error("It wasn't possible to connect to your database", error));
 
 module.exports = app;
-
-console.log("server running at: http://localhost:3000");

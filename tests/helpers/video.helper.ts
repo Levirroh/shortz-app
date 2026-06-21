@@ -1,31 +1,37 @@
 import request from 'supertest';
-import type { Express } from 'express';
 
-type VideoData = {
+type Agent = ReturnType<typeof request.agent>;
+
+type VideoUploadData = {
   title: string;
-  description?: string;
-  url: string;
-  user_id: number;
+  description: string;
+  videoPath: string;
+  thumbnailPath: string;
 };
 
-export async function createVideo(app: Express, video: VideoData) {
-  const response = await request(app)
-    .post('/videos')
-    .send(video);
-
-  return response;
+export async function uploadVideo(agent: Agent, video: VideoUploadData) {
+  return agent
+    .post('/upload')
+    .field('title', video.title)
+    .field('description', video.description)
+    .attach('video', video.videoPath)
+    .attach('thumbnail', video.thumbnailPath);
 }
 
-export async function listVideos(app: Express) {
-  const response = await request(app)
-    .get('/videos');
-
-  return response;
+export async function getFeed(agent: Agent) {
+  return agent.get('/feed');
 }
 
-export async function getVideoById(app: Express, videoId: number) {
-  const response = await request(app)
-    .get(`/videos/${videoId}`);
+export async function getVideoPage(agent: Agent, videoId: number) {
+  return agent.get(`/video/${videoId}`);
+}
 
-  return response;
+export function extractFirstVideoIdFromFeed(html: string): number | null {
+  const match = html.match(/href=["']\/video\/(\d+)["']/);
+
+  if (!match) {
+    return null;
+  }
+
+  return Number(match[1]);
 }

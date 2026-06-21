@@ -2,6 +2,7 @@ export function createTestUser() {
   const timestamp = Date.now();
 
   return {
+    username: `usuario_teste_${timestamp}`,
     name: `Usuário Teste ${timestamp}`,
     email: `usuario${timestamp}@shortz.com`,
     password: '123456',
@@ -13,7 +14,6 @@ export function createTestVideo() {
 
   return {
     title: `Vídeo Teste ${timestamp}`,
-    description: 'Descrição criada durante teste E2E.',
-    url: `https://shortz.test/video-${timestamp}`,
+    description: 'Descrição criada durante teste de integração.',
   };
 }
