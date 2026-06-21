@@ -5,13 +5,14 @@ process.env.NODE_ENV = 'test';
 
 const app = require('../app');
 const sequelize = require('../configuration/database');
+const User = require('../modules/users/userModel');
 
 function createTestUser() {
   const timestamp = Date.now();
 
   return {
     username: `usuario_teste_${timestamp}`,
-    name: `Usuário Teste ${timestamp}`,
+    fullName: `Usuário Teste ${timestamp}`,
     email: `usuario${timestamp}@shortz.com`,
     password: '123456',
   };
@@ -35,7 +36,7 @@ describe('Shortz-App - Testes de Integração com Vitest + Supertest', () => {
     expect(response.text).toContain('Criar Conta');
   }, 30000);
 
-  it('CT-INT-002 - Deve cadastrar usuário', async () => {
+  it('CT-INT-002 - Deve cadastrar usuário pela rota oficial POST /register', async () => {
     const agent = request.agent(app);
     const user = createTestUser();
 
@@ -44,14 +45,23 @@ describe('Shortz-App - Testes de Integração com Vitest + Supertest', () => {
       .type('form')
       .send({
         username: user.username,
-        name: user.name,
+        fullName: user.fullName,
         email: user.email,
         password: user.password,
         confirmPassword: user.password,
       })
       .timeout({ response: 10000, deadline: 20000 });
 
-    expect([200, 201, 302]).toContain(response.status);
+    expect(response.status).toBe(302);
+    expect(response.headers.location).toBe('/login');
+
+    const userInDatabase = await User.findOne({
+      where: { email: user.email },
+    });
+
+    expect(userInDatabase).not.toBeNull();
+    expect(userInDatabase.email).toBe(user.email);
+    expect(userInDatabase.username).toBe(user.username);
   }, 30000);
 
   it('CT-INT-003 - Deve fazer login e acessar o feed autenticado', async () => {
@@ -63,14 +73,15 @@ describe('Shortz-App - Testes de Integração com Vitest + Supertest', () => {
       .type('form')
       .send({
         username: user.username,
-        name: user.name,
+        fullName: user.fullName,
         email: user.email,
         password: user.password,
         confirmPassword: user.password,
       })
       .timeout({ response: 10000, deadline: 20000 });
 
-    expect([200, 201, 302]).toContain(registerResponse.status);
+    expect(registerResponse.status).toBe(302);
+    expect(registerResponse.headers.location).toBe('/login');
 
     const loginResponse = await agent
       .post('/login')
@@ -81,7 +92,8 @@ describe('Shortz-App - Testes de Integração com Vitest + Supertest', () => {
       })
       .timeout({ response: 10000, deadline: 20000 });
 
-    expect([200, 302]).toContain(loginResponse.status);
+    expect(loginResponse.status).toBe(302);
+    expect(loginResponse.headers.location).toBe('/feed');
 
     const feedResponse = await agent
       .get('/feed')
@@ -96,10 +108,7 @@ describe('Shortz-App - Testes de Integração com Vitest + Supertest', () => {
       .post('/video/999999/toggle-like')
       .timeout({ response: 10000, deadline: 20000 });
 
-    expect([302, 401, 403]).toContain(response.status);
-
-    if (response.status === 302) {
-      expect(response.headers.location).toContain('/login');
-    }
+    expect(response.status).toBe(302);
+    expect(response.headers.location).toContain('/login');
   }, 30000);
 });
